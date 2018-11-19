@@ -1,39 +1,233 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Foundation 实例</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.staticfile.org/foundation/5.5.3/css/foundation.min.css">
-  <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
-  <script src="https://cdn.staticfile.org/foundation/5.5.3/js/foundation.min.js"></script>
-  <script src="https://cdn.staticfile.org/foundation/5.5.3/js/vendor/modernizr.js"></script>
+    <title>PID模拟</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/foundation.min.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script src="js/modernizr.js"></script>
+    <script src="js/highcharts.js"></script>
 </head>
 <body>
- 
+<style>
+    .row {
+        max-width: 95%;
+    }
+</style>
+<h1 align="center">PID温度控制模拟</h1>
 <div class="row">
-  <div class="medium-12 columns">
-    <div class="panel">
-      <h1>Foundation 页面</h1>
-      <p>重置窗口大小，查看效果！</p>
-      <button type="button" class="button small">我是按钮!</button>
+    <div id="container" class="large-12 columns" style="height: 600px">
     </div>
-  </div>
+
 </div>
 
 <div class="row">
-  <div class="medium-4 columns">
-    <h3>菜鸟教程</h3>
-    <p>学的不仅是技术，更是梦想！！！</p>
-  </div>
-  <div class="medium-4 columns">
-    <h3>菜鸟教程</h3>
-    <p>学的不仅是技术，更是梦想！！！</p>
-  </div>
-  <div class="medium-4 columns">
-    <h3>菜鸟教程</h3>
-    <p>学的不仅是技术，更是梦想！！！</p>
-  </div>
+    <div class="large-2 columns">
+        <div class="row collapse prefix-radius">
+            <div class="small-4 columns">
+                <span class="prefix">设定温度</span>
+            </div>
+            <div class="small-8 columns">
+                <input type="text" value="23.00" id="presetTemp" title="">
+            </div>
+        </div>
+    </div>
+    <div class="large-2 columns">
+        <div class="row collapse prefix-radius">
+            <div class="small-4 columns">
+                <span class="prefix">Kp</span>
+            </div>
+            <div class="small-8 columns">
+                <input type="text" value="0.00" id="kp" title="">
+            </div>
+        </div>
+    </div>
+    <div class="large-2 columns">
+        <div class="row collapse prefix-radius">
+            <div class="small-4 columns">
+                <span class="prefix">Ki</span>
+            </div>
+            <div class="small-8 columns">
+                <input type="text" value="0.00" id="ki" title="">
+            </div>
+        </div>
+    </div>
+    <div class="large-2 columns">
+        <div class="row collapse prefix-radius">
+            <div class="small-4 columns">
+                <span class="prefix">Kd</span>
+            </div>
+            <div class="small-8 columns">
+                <input type="text" value="0.00" id="kd" title="">
+            </div>
+        </div>
+    </div>
+    <div class="large-2 columns">
+        <div class="switch round">
+            <!--<span style="font-size: 20px;">噪音</span>-->
+            <input id="adjust" type="checkbox" onchange="adjust = !adjust;">
+            <label for="adjust"></label>
+        </div>
+    </div>
+    <div class="large-2 columns">
+        <div class="switch round">
+            <!--  <span style="font-size: 28; vertical-align: middle; display: table-cell; text-align: center;">噪音</span> -->
+            <input id="noise" type="checkbox" onchange=" noise = !noise;">
+            <label for="noise"></label>
+        </div>
+    </div>
 </div>
+<div class="row" id="show"></div>
+<script>
+    let input = 5;
+    let temp = 15.00;
+    let noise = false;
+    let adjust = false;
+
+    let pid = {
+        kp: 0,
+        ki: 0,
+        kd: 0,
+        target: 0,
+        nowError: 0,
+        lastErrorOne: 0,
+        lastErrorTwo: 0,
+        calculateValue: function (sample) {
+            this.nowError = this.target - sample;
+            console.log("nowError:" + this.nowError + ";lastErrorOne:" + this.lastErrorOne + "sample:" + sample);
+            // console.log(this.kp * (this.nowError - this.lastErrorOne) + ";kp:" + this.kp + ";aa:" + (this.nowError - this.lastErrorOne));
+            show();
+            let out = this.kp * (this.nowError - this.lastErrorOne) + this.ki * this.nowError
+                + this.kd * (this.nowError - 2 * this.lastErrorOne + this.lastErrorTwo);
+            this.lastErrorTwo = this.lastErrorOne;
+            this.lastErrorOne = this.nowError;
+            // if(out > 10){
+            //     out = 10;
+            // }
+            // if(out < -10){
+            //     out = -10;
+            // }
+
+            return out;
+        }
+    };
+
+    function getTemp(){
+        let pidValue = 0.0;
+        if(noise){
+            temp += Math.random() - 0.5;
+        }
+        if(adjust){
+            const kp = document.getElementById("kp");
+            const ki = document.getElementById("ki");
+            const kd = document.getElementById("kd");
+            const presetTemp = document.getElementById("presetTemp");
+            pid.target = parseFloat(presetTemp.value);
+            setTempLine(pid.target);
+            pid.kp = parseFloat(kp.value);
+            pid.ki = parseFloat(ki.value);
+            pid.kd = parseFloat(kd.value);
+            pidValue = pid.calculateValue(temp);
+            // temp += pid.calculateValue(temp);
+            // show("temp:" + pid.target + ";   kp:" + pid.kp + ";   ki:" + pid.ki + ";   kd:" + pid.kd);
+        }
+        temp = systemFunction(input + pidValue);
+        return temp;
+    }
+    function systemFunction(t) {
+        return 3 * t;
+    }
+    function setTempLine(temp) {
+        chart.yAxis[0].removePlotLine('plot-line-1');
+        chart.yAxis[0].addPlotLine({
+            value: temp,
+            color: 'red',
+            width: 5,
+            id: 'plot-line-1'
+        });
+    }
+
+    function show(str){
+        let show = document.getElementById("show");
+        show.innerHTML = str;
+    }
+
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+
+    function activeLastPointToolip(chart) {
+        const points = chart.series[0].points;
+        chart.tooltip.refresh(points[points.length - 1]);
+    }
+
+    let chart = Highcharts.chart('container', {
+        chart: {
+            type: 'spline',
+            marginRight: 10,
+            zoomType: 'y',
+            panning: true,
+            panKey: 'shift',
+            events: {
+                load: function () {
+                    const series = this.series[0],
+                        chart = this;
+                    activeLastPointToolip(chart);
+                    setInterval(function () {
+                        const x = (new Date()).getTime(), // 当前时间
+                            y = getTemp();          // 随机值
+                        series.addPoint([x, y], true, true);
+                        activeLastPointToolip(chart);
+                    }, 1000);
+                }
+            }
+        },
+        title: {
+            text: null
+        },
+        credits: {
+            enabled: false
+        },
+        xAxis: {
+            type: 'datetime',
+            tickPixelInterval: 150
+        },
+        yAxis: {
+            title: {
+                text: null
+            },
+            min: 0,
+            max: 50,
+            startOnTick: true
+        },
+        tooltip: {
+            formatter: function () {
+                return '<b>' + this.series.name + ':' + this.y.toFixed(2) + '</b><br/>' +
+                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                    Highcharts.numberFormat(this.y, 2);
+            }
+        },
+        series: [{
+            name: '室内温度',
+            data: (function () {
+                // 生成随机值
+                let data = [],
+                    time = (new Date()).getTime(),
+                    i;
+                for (i = -190; i <= 0; i += 1) {
+                    data.push({
+                        x: time + i * 1000,
+                        y: temp
+                    });
+                }
+                return data;
+            }())
+        }]
+    });
+</script>
 </body>
 </html>
