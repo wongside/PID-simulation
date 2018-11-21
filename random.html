@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>随机点名系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/foundation.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script src="js/modernizr.js"></script>
+</head>
+<body>
+<br>
+<div class="row" style="max-width: 90%" align="center">
+    <div class="large-9 columns">
+        <div id="container" class="panel radius">
+            <div class="panel callout" style="max-width: 20%;">
+                <h3>讲&nbsp;&nbsp;台</h3>
+            </div>
+            <br>
+        </div>
+        <button type="button" class="button expand" onclick="change(this)" style="font-size: 30px">随机点名</button>
+    </div>
+    <div id="info" class="large-3 columns" style="height: 650px; overflow-y:auto"></div>
+</div>
+<script>
+    let count = 0;
+    const s1 = "&nbsp;&nbsp;<i id = 'i";
+    const s2 = "' onclick='change(this)' class='fa fa-user-o' style='font-size:80px;'></i>";
+    const s3 = "<div data-alert class='alert-box secondary round'><strong>第";
+    const s4 = "<a href='#' class='close'>&times;</a></div>";
+    window.onload = function () {
+        let container = document.getElementById("container");
+        for (let i = 0; i < 60; i++) {
+            if (i % 10 === 2 || i % 10 === 8) {
+                container.innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+            }
+            container.innerHTML += s1 + i + s2;
+            if (i % 10 === 9) {
+                container.innerHTML += "<br>";
+            }
+        }
+    };
+
+    function change(item) {
+        if (item.classList.contains("fa-user-o")) {
+            item.classList.remove("fa-user-o");
+            item.classList.add("fa-close");
+        } else if (item.classList.contains("fa-close")) {
+            item.classList.remove("fa-close");
+            item.classList.add("fa-user-o");
+        } else if (item.classList.contains("button")) {
+            let last = -1;
+            let time = 0;
+            for (let i = 0; i < 20; i++) {
+                time += 20 * i;
+                setTimeout(function () {
+                    let index = parseInt(Math.random() * 60);
+                    while (!document.getElementById("i" + index).classList.contains("fa-user-o")) {
+                        index++;
+                        index %= 60;
+                    }
+                    if (last !== -1) {
+                        let lastElement = document.getElementById("i" + last);
+                        lastElement.style.color = "";
+                        lastElement.classList.remove("fa-user");
+                        lastElement.classList.add("fa-user-o");
+                        lastElement.style.fontSize = 80 + "px";
+                    }
+                    let nowElement = document.getElementById("i" + index);
+                    nowElement.classList.remove("fa-user-o");
+                    nowElement.classList.add("fa-user");
+                    nowElement.style.color = "red";
+                    nowElement.style.fontSize = 84 + "px";
+                    last = index;
+                    if (i === 19) {
+                        count++;
+                        let info = document.getElementById("info");
+                        info.innerHTML += s3 + count + "名同学：</strong><br>第" +
+                            (parseInt(index / 10)+1)  + "排，第" + (index % 10 + 1) + "列。"+s4;
+                        info.scrollTop = info.scrollHeight;
+                    }
+                }, time);
+            }
+
+        }
+    }
+
+    $(document).ready(function () {
+        $(document).foundation();
+    })
+</script>
+</body>
+</html>
