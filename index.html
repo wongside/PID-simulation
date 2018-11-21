@@ -16,21 +16,18 @@
         max-width: 95%;
     }
 </style>
-<h1 align="center">PID温度控制模拟</h1>
+<h1 align="center">PID温度控制器</h1>
 <div class="row">
-    <div id="container" class="large-12 columns" style="height: 600px">
-    </div>
-
+    <div id="container" class="large-12 columns" style="height: 600px"></div>
 </div>
-
 <div class="row">
     <div class="large-2 columns">
         <div class="row collapse prefix-radius">
             <div class="small-4 columns">
-                <span class="prefix">设定温度</span>
+                <span class="prefix">目标温度</span>
             </div>
             <div class="small-8 columns">
-                <input type="text" value="23.00" id="presetTemp" title="">
+                <input type="text" value="26.00" id="presetTemp" title="">
             </div>
         </div>
     </div>
@@ -64,94 +61,66 @@
             </div>
         </div>
     </div>
-    <div class="large-2 columns">
-        <div class="switch round">
-            <!--<span style="font-size: 20px;">噪音</span>-->
-            <input id="adjust" type="checkbox" onchange="adjust = !adjust;">
-            <label for="adjust"></label>
-        </div>
-    </div>
-    <div class="large-2 columns">
-        <div class="switch round">
-            <!--  <span style="font-size: 28; vertical-align: middle; display: table-cell; text-align: center;">噪音</span> -->
-            <input id="noise" type="checkbox" onchange=" noise = !noise;">
-            <label for="noise"></label>
-        </div>
+    <div class="large-4 columns">
+        <ul class="button-group even-4">
+            <li>
+                <button type="button" class="button radius default tiny" onclick="setting();">设置</button>
+            </li>
+            <li>
+                <button type="button" class="button radius success tiny" onclick="adjust(this);">调节</button>
+            </li>
+            <li>
+                <button type="button" class="button radius warning tiny" onclick="measure();">测量</button>
+            </li>
+            <li>
+                <button type="button" class="button radius alert tiny" onclick="reset();">重置</button>
+            </li>
+        </ul>
     </div>
 </div>
-<div class="row" id="show"></div>
+<!--<div class="row">
+    <div class="panel callout">
+        <h3>标题</h3>
+        <p>文本内容..</p>
+    </div>
+</div>-->
 <script>
-    let input = 5;
-    let temp = 15.00;
-    let noise = false;
-    let adjust = false;
 
-    let pid = {
-        kp: 0,
-        ki: 0,
-        kd: 0,
-        target: 0,
-        nowError: 0,
-        lastErrorOne: 0,
-        lastErrorTwo: 0,
-        calculateValue: function (sample) {
-            this.nowError = this.target - sample;
-            console.log("nowError:" + this.nowError + ";lastErrorOne:" + this.lastErrorOne + "sample:" + sample);
-            // console.log(this.kp * (this.nowError - this.lastErrorOne) + ";kp:" + this.kp + ";aa:" + (this.nowError - this.lastErrorOne));
-            show();
-            let out = this.kp * (this.nowError - this.lastErrorOne) + this.ki * this.nowError
-                + this.kd * (this.nowError - 2 * this.lastErrorOne + this.lastErrorTwo);
-            this.lastErrorTwo = this.lastErrorOne;
-            this.lastErrorOne = this.nowError;
-            // if(out > 10){
-            //     out = 10;
-            // }
-            // if(out < -10){
-            //     out = -10;
-            // }
-
-            return out;
+    function adjust(adjustButton) {
+        if (sys.isStart === 1) {
+            adjustButton.innerHTML = "停止";
+            sys.isStart = 2;
+        } else if(sys.isStart === 2) {
+            adjustButton.innerHTML = "调节";
+            sys.isStart = 0;
+        }else {
+            sys.isStart = 1;
         }
-    };
-
-    function getTemp(){
-        let pidValue = 0.0;
-        if(noise){
-            temp += Math.random() - 0.5;
-        }
-        if(adjust){
-            const kp = document.getElementById("kp");
-            const ki = document.getElementById("ki");
-            const kd = document.getElementById("kd");
-            const presetTemp = document.getElementById("presetTemp");
-            pid.target = parseFloat(presetTemp.value);
-            setTempLine(pid.target);
-            pid.kp = parseFloat(kp.value);
-            pid.ki = parseFloat(ki.value);
-            pid.kd = parseFloat(kd.value);
-            pidValue = pid.calculateValue(temp);
-            // temp += pid.calculateValue(temp);
-            // show("temp:" + pid.target + ";   kp:" + pid.kp + ";   ki:" + pid.ki + ";   kd:" + pid.kd);
-        }
-        temp = systemFunction(input + pidValue);
-        return temp;
     }
-    function systemFunction(t) {
-        return 3 * t;
-    }
-    function setTempLine(temp) {
-        chart.yAxis[0].removePlotLine('plot-line-1');
+
+    function setting() {
+        const kp = document.getElementById("kp");
+        const ki = document.getElementById("ki");
+        const kd = document.getElementById("kd");
+        const presetTemp = document.getElementById("presetTemp");
+        pid.target = parseFloat(presetTemp.value);
+        pid.kp = parseFloat(kp.value);
+        pid.ki = parseFloat(ki.value);
+        pid.kd = parseFloat(kd.value);
         chart.yAxis[0].addPlotLine({
-            value: temp,
+            value: pid.target,
             color: 'red',
             width: 5,
             id: 'plot-line-1'
         });
     }
 
-    function show(str){
-        let show = document.getElementById("show");
-        show.innerHTML = str;
+    function measure() {
+
+    }
+
+    function reset() {
+        location.reload();
     }
 
     Highcharts.setOptions({
@@ -160,10 +129,43 @@
         }
     });
 
-    function activeLastPointToolip(chart) {
-        const points = chart.series[0].points;
-        chart.tooltip.refresh(points[points.length - 1]);
-    }
+    let pid = {
+        kp: 0,
+        ki: 0,
+        kd: 0,
+        target: 0,
+        error: 0,
+        integral: 0,
+        lastError: 0,
+        calculateValue: function (sample) {
+            this.error = this.target - sample;
+            this.integral += this.error;
+            let out = this.kp * this.error + this.ki * this.integral + this.kd * (this.error - this.lastError);
+            this.lastError = this.error;
+            if (out > 20) {
+                out = 20;
+            }
+            if (out < -20) {
+                out = -20;
+            }
+            return out;
+        }
+    };
+
+    let sys = {
+        temp: 15,
+        time: 0,
+        isStart: 1,
+        timeConstant: 10,
+        showTip:function(chart){
+            const points = chart.series[0].points;
+            chart.tooltip.refresh(points[points.length - 1]);
+        },
+        transferFunction: function (feedback) {
+            this.temp += feedback * Math.pow(Math.E, -(1 / this.timeConstant) * this.time);
+            return this.temp;
+        }
+    };
 
     let chart = Highcharts.chart('container', {
         chart: {
@@ -176,12 +178,20 @@
                 load: function () {
                     const series = this.series[0],
                         chart = this;
-                    activeLastPointToolip(chart);
+                    sys.showTip(chart);
                     setInterval(function () {
-                        const x = (new Date()).getTime(), // 当前时间
-                            y = getTemp();          // 随机值
-                        series.addPoint([x, y], true, true);
-                        activeLastPointToolip(chart);
+                        let x = (new Date()).getTime(), y; // 当前时间
+                        if(sys.isStart > 0){
+                            if (sys.isStart === 2) {
+                                sys.time++;
+                                y = sys.transferFunction(pid.calculateValue(sys.temp));
+                            } else {
+                                y = sys.temp;
+                            }
+                            series.addPoint([x, y], true, true);
+                            sys.temp += Math.random() - 0.5
+                            sys.showTip(chart);
+                        }
                     }, 1000);
                 }
             }
@@ -194,7 +204,7 @@
         },
         xAxis: {
             type: 'datetime',
-            tickPixelInterval: 150
+            tickPixelInterval: 150,
         },
         yAxis: {
             title: {
@@ -203,6 +213,14 @@
             min: 0,
             max: 50,
             startOnTick: true
+        },
+        plotOptions: {
+            series: {
+                enableMouseTracking: false,
+                marker: {
+                    enabled: false
+                }
+            }
         },
         tooltip: {
             formatter: function () {
@@ -218,16 +236,19 @@
                 let data = [],
                     time = (new Date()).getTime(),
                     i;
-                for (i = -190; i <= 0; i += 1) {
+                for (i = -20; i <= 0; i += 1) {
                     data.push({
                         x: time + i * 1000,
-                        y: temp
+                        y: sys.temp
                     });
                 }
                 return data;
             }())
         }]
     });
+    $(document).ready(function() {
+        $(document).foundation();
+    })
 </script>
 </body>
 </html>
