@@ -12,10 +12,10 @@
 </head>
 <body>
 <br>
-<div class="row" style="max-width: 90%" align="center">
+<div class="row" style="max-width: 95%" align="center">
     <div class="large-9 columns">
-        <div id="container" class="panel radius">
-            <div class="panel callout" style="max-width: 20%;">
+        <div id="container" class="panel radius" style="">
+            <div class="panel callout" style="max-width: 20%;" onclick="change(this)">
                 <h3>讲&nbsp;&nbsp;台</h3>
             </div>
             <br>
@@ -26,18 +26,19 @@
 </div>
 <script>
     let count = 0;
+    let flag = true;
     const s1 = "&nbsp;&nbsp;<i id = 'i";
     const s2 = "' onclick='change(this)' class='fa fa-user-o' style='font-size:80px;'></i>";
     const s3 = "<div data-alert class='alert-box secondary round'><strong>第";
     const s4 = "<a href='#' class='close'>&times;</a></div>";
     window.onload = function () {
         let container = document.getElementById("container");
-        for (let i = 0; i < 60; i++) {
-            if (i % 10 === 2 || i % 10 === 8) {
+        for (let i = 0; i < 66; i++) {
+            if (i % 11 === 2 || i % 11 === 8) {
                 container.innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
             }
             container.innerHTML += s1 + i + s2;
-            if (i % 10 === 9) {
+            if (i % 11 === 10) {
                 container.innerHTML += "<br>";
             }
         }
@@ -77,13 +78,22 @@
                     if (i === 19) {
                         count++;
                         let info = document.getElementById("info");
-                        info.innerHTML += s3 + count + "名同学：</strong><br>第" +
-                            (parseInt(index / 10)+1)  + "排，第" + (index % 10 + 1) + "列。"+s4;
+                        info.innerHTML += s3 + count + "名同学：</strong>第" +
+                            (parseInt(index / 11) + 1) + "排，第" + (index % 11 + 1) + "列。" + s4;
                         info.scrollTop = info.scrollHeight;
                     }
                 }, time);
             }
 
+        }else if(item.classList.contains("panel")){
+            let container = document.getElementById("container");
+            if(flag){
+                container.style.webkitTransform = 'rotate(' + 180 + 'deg)';
+                flag = !flag;
+            }else{
+                container.style.webkitTransform = 'rotate(' + 0 + 'deg)';
+                flag = !flag;
+            }
         }
     }
 

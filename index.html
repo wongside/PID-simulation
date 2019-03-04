@@ -11,79 +11,78 @@
     <script src="js/highcharts.js"></script>
 </head>
 <body>
-<style>
-    .row {
-        max-width: 95%;
-    }
-</style>
 <h1 align="center">PID温度控制器</h1>
-<div class="row">
-    <div id="container" class="large-12 columns" style="height: 600px"></div>
+<div class="row" style="max-width: 95%">
+    <div class="large-10 columns">
+        <div class="row" >
+            <div id="container" class="large-12 columns" style="height: 600px"></div>
+        </div>
+        <div class="row">
+            <div class="large-2 columns">
+                <div class="row collapse prefix-radius">
+                    <div class="small-5 columns">
+                        <span class="prefix">目标温度</span>
+                    </div>
+                    <div class="small-7 columns">
+                        <input type="text" value="26.00" id="presetTemp" title="">
+                    </div>
+                </div>
+            </div>
+            <div class="large-2 columns">
+                <div class="row collapse prefix-radius">
+                    <div class="small-4 columns">
+                        <span class="prefix">Kp</span>
+                    </div>
+                    <div class="small-8 columns">
+                        <input type="text" value="0.00" id="kp" title="">
+                    </div>
+                </div>
+            </div>
+            <div class="large-2 columns">
+                <div class="row collapse prefix-radius">
+                    <div class="small-4 columns">
+                        <span class="prefix">Ki</span>
+                    </div>
+                    <div class="small-8 columns">
+                        <input type="text" value="0.00" id="ki" title="">
+                    </div>
+                </div>
+            </div>
+            <div class="large-2 columns">
+                <div class="row collapse prefix-radius">
+                    <div class="small-4 columns">
+                        <span class="prefix">Kd</span>
+                    </div>
+                    <div class="small-8 columns">
+                        <input type="text" value="0.00" id="kd" title="">
+                    </div>
+                </div>
+            </div>
+            <div class="large-4 columns">
+                <ul class="button-group even-4">
+                    <li>
+                        <button type="button" class="button radius default tiny" onclick="setting();">设置</button>
+                    </li>
+                    <li>
+                        <button type="button" class="button radius success tiny" onclick="adjust(this);">调节</button>
+                    </li>
+                    <li>
+                        <button type="button" class="button radius warning tiny" onclick="measure();">测量</button>
+                    </li>
+                    <li>
+                        <button type="button" class="button radius alert tiny" onclick="reset();">重置</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="large-2 columns">
+        <h3 align="center">测量信息</h3>
+        <div id="show" style="overflow-y:auto;height: 600px;"></div>
+    </div>
 </div>
-<div class="row">
-    <div class="large-2 columns">
-        <div class="row collapse prefix-radius">
-            <div class="small-4 columns">
-                <span class="prefix">目标温度</span>
-            </div>
-            <div class="small-8 columns">
-                <input type="text" value="26.00" id="presetTemp" title="">
-            </div>
-        </div>
-    </div>
-    <div class="large-2 columns">
-        <div class="row collapse prefix-radius">
-            <div class="small-4 columns">
-                <span class="prefix">Kp</span>
-            </div>
-            <div class="small-8 columns">
-                <input type="text" value="0.00" id="kp" title="">
-            </div>
-        </div>
-    </div>
-    <div class="large-2 columns">
-        <div class="row collapse prefix-radius">
-            <div class="small-4 columns">
-                <span class="prefix">Ki</span>
-            </div>
-            <div class="small-8 columns">
-                <input type="text" value="0.00" id="ki" title="">
-            </div>
-        </div>
-    </div>
-    <div class="large-2 columns">
-        <div class="row collapse prefix-radius">
-            <div class="small-4 columns">
-                <span class="prefix">Kd</span>
-            </div>
-            <div class="small-8 columns">
-                <input type="text" value="0.00" id="kd" title="">
-            </div>
-        </div>
-    </div>
-    <div class="large-4 columns">
-        <ul class="button-group even-4">
-            <li>
-                <button type="button" class="button radius default tiny" onclick="setting();">设置</button>
-            </li>
-            <li>
-                <button type="button" class="button radius success tiny" onclick="adjust(this);">调节</button>
-            </li>
-            <li>
-                <button type="button" class="button radius warning tiny" onclick="measure();">测量</button>
-            </li>
-            <li>
-                <button type="button" class="button radius alert tiny" onclick="reset();">重置</button>
-            </li>
-        </ul>
-    </div>
-</div>
-<!--<div class="row">
-    <div class="panel callout">
-        <h3>标题</h3>
-        <p>文本内容..</p>
-    </div>
-</div>-->
+
+
 <script>
 
     function adjust(adjustButton) {
@@ -116,11 +115,39 @@
     }
 
     function measure() {
-
+        let show = document.getElementById("show");
+        show.innerHTML += "<div data-alert class='alert-box secondary' style=''>\n" +
+            "<strong>最大超调量：</strong>" + sys.max.toFixed(2) +
+            "度<br><strong>调节时间：</strong>" + sys.timeLong +
+            "秒</div>"
     }
 
     function reset() {
         location.reload();
+        // sys.isStart = 0;
+        // sys.temp = 15;
+        // sys.time = 0;
+        // chart.yAxis[0].removePlotLine('plot-line-1');
+        // const series = chart.series[0];
+        // series.hide();
+        // chart.series[0].remove();
+        //
+        // for(let i = 0; i < 21; i++){
+        //     series.removePoint(0,false);
+        // }
+        // let t = (new Date()).getTime();
+        // for (let i = -20; i <= 0; i++) {
+        //     let x = t + i * 1000;
+        //     let y = sys.temp;
+        //     series.addPoint([x, y], false, true);
+        //     console.log("aaa");
+        // }
+        // chart.series = sys.initData();
+        // chart.series[0].setData(sys.initData());
+        // chart.series[0].update(sys.initData());
+        // chart.series[0].show();
+        // chart.redraw();
+        // sys.isStart = 1;
     }
 
     Highcharts.setOptions({
@@ -153,6 +180,8 @@
     };
 
     let sys = {
+        max:0,
+        timeLong :0,
         temp: 15,
         time: 0,
         isStart: 1,
@@ -164,6 +193,23 @@
         transferFunction: function (feedback) {
             this.temp += feedback * Math.pow(Math.E, -(1 / this.timeConstant) * this.time);
             return this.temp;
+        },
+        initData:function () {
+            return [{
+                name: '室内温度',
+                data: (function () {
+                    let data = [],
+                        time = (new Date()).getTime(),
+                        i;
+                    for (i = -20; i <= 0; i += 1) {
+                        data.push({
+                            x: time + i * 1000,
+                            y: sys.temp
+                        });
+                    }
+                    return data;
+                }())
+            }]
         }
     };
 
@@ -185,6 +231,12 @@
                             if (sys.isStart === 2) {
                                 sys.time++;
                                 y = sys.transferFunction(pid.calculateValue(sys.temp));
+                                if(y > sys.max){
+                                    sys.max = y;
+                                }
+                                if(Math.abs(pid.target - y) > 0.5){
+                                    sys.timeLong = sys.time;
+                                }
                             } else {
                                 y = sys.temp;
                             }
@@ -229,22 +281,7 @@
                     Highcharts.numberFormat(this.y, 2);
             }
         },
-        series: [{
-            name: '室内温度',
-            data: (function () {
-                // 生成随机值
-                let data = [],
-                    time = (new Date()).getTime(),
-                    i;
-                for (i = -20; i <= 0; i += 1) {
-                    data.push({
-                        x: time + i * 1000,
-                        y: sys.temp
-                    });
-                }
-                return data;
-            }())
-        }]
+        series: sys.initData()
     });
     $(document).ready(function() {
         $(document).foundation();
